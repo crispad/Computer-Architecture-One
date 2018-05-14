@@ -69,6 +69,8 @@ class CPU {
         // index into memory of the instruction that's about to be executed
         // right now.)
 
+        const IR = this.ram.read(this.reg.PC);
+
         // !!! IMPLEMENT ME
 
         // Debugging output
@@ -77,10 +79,16 @@ class CPU {
         // Get the two bytes in memory _after_ the PC in case the instruction
         // needs them.
 
+        const operandA = this.ram.read(this.reg.PC + 1);
+        const operandB = this.ram.read(this.reg.PC + 2);
+
         // !!! IMPLEMENT ME
 
         // Execute the instruction. Perform the actions for the instruction as
         // outlined in the LS-8 spec.
+
+        
+        }
 
         // !!! IMPLEMENT ME
 
@@ -90,7 +98,10 @@ class CPU {
         // for any particular instruction.
         
         // !!! IMPLEMENT ME
-    }
-}
+
+        
+        }
+    
+
 
 module.exports = CPU;
