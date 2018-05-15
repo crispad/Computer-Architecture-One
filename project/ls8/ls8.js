@@ -24,7 +24,7 @@ function loadMemory() {
         cpu.poke(i, parseInt(program[i], 2));
     }
 }
-
+//console.log(program[i]);
 /**
  * Main
  */
