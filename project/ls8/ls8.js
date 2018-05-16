@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const RAM = require('./ram');
 const CPU = require('./cpu');
 
@@ -23,7 +25,7 @@ function loadMemory() {
     for(let line of lines) {
         const cmt = line.indexOf('#');
         if (cmt !== -1) {
-            line = line.substract(0,cmt);
+            line = line.substr(0,cmt);
         }
         if (line === '') {
             continue;

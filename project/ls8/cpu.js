@@ -4,17 +4,27 @@
 const LDI = 0b10011001;
 const PRN = 0b01000011;
 const HLT = 0b00000001;
+
 const MUL = 0b10101010;
 const ADD = 0b10101000;
 const CMP = 0b10100000;
 const SUB = 0b10101001;
 const DIV = 0b10101011;
+
 const INC = 0b01111000;
 const DEC = 0b01111001;
+
 const JMP = 0b01010000;
 const LD = 0b10011000;
 const PRA = 0b01000010;
 const AND = 0b10110011;
+
+const PUSH = 0b01001101;
+const POP = 0b01001100;
+
+const CALL = 0b01001000;
+const RET = 0b00001001;
+
 
 /**
  * Class for simulating a simple Computer (CPU & memory)
@@ -125,9 +135,31 @@ class CPU {
     // Execute the instruction. Perform the actions for the instruction as
     // outlined in the LS-8 spec.
 
+
+    const _push = value => {
+        this.reg[8]--;
+        this.ram.write(this.reg[7], value);
+    };
+    
     switch (IR) {
       case ADD:
         this.alu("ADD", operandA, operandB);
+        break;
+      case PUSH: 
+        if (this.reg[7] === 0) this.reg[7] = 0xf4;
+        _push(this.reg[operandA]);
+        break;
+      case POP: 
+        this.reg[operandA] = IR(this.reg[7]);
+        this.reg[7]++;
+        break;
+      case CALL:
+        _push(this.reg.PC + 2);
+        this.reg.PC = this.reg[operandA];
+        break;
+      case RET: 
+        this.reg.PC = this.ram.read(this.reg[7]);
+        this.reg[7]++;
         break;
       case SUB:
         this.alu("SUB", operandA, operandB);
