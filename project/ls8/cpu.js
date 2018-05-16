@@ -5,6 +5,17 @@ const LDI = 0b10011001;
 const PRN = 0b01000011;
 const HLT = 0b00000001;
 const MUL = 0b10101010;
+const ADD = 0b10101000;
+const CMP = 0b10100000;
+const SUB = 0b10101001;
+const DIV = 0b10101011;
+const INC = 0b01111000;
+const DEC = 0b01111001;
+const JMP = 0b01010000;
+const LD = 0b10011000;
+const PRA = 0b01000010;
+const AND = 0b10110011;
+
 /**
  * Class for simulating a simple Computer (CPU & memory)
  */
@@ -58,6 +69,31 @@ class CPU {
     switch (op) {
       case "MUL":
         // !!! IMPLEMENT ME
+        this.reg[regA] *= this.reg[regb];
+        break;
+
+      case "ADD":
+        this.reg[regA] += this.reg[regB];
+        break;
+
+      case "SUB":
+        this.reg[regA] -= this.reg[regB];
+        break;
+
+      case "DIV":
+        if (regB === 0) {
+          console.error("Denominator cannot be zero");
+          this.stopClock();
+        } else {
+          this.reg[regA] /= this.reg[regB];
+        }
+        break;
+
+      case "AND":
+        this.reg[regA] &= this.reg[regB];
+        break;
+      default:
+        console.log("Default case");
         break;
     }
   }
@@ -71,12 +107,12 @@ class CPU {
     // index into memory of the instruction that's about to be executed
     // right now.)
 
-    const IR = this.ram.read(this.reg.PC);
+    const IR = this.ram.read(this.PC);
 
     // !!! IMPLEMENT ME
 
     // Debugging output
-     //console.log(`${this.PC}: ${IR.toString(2)}`);
+    console.log(`${this.PC}: ${IR.toString(2)}`);
 
     // Get the two bytes in memory _after_ the PC in case the instruction
     // needs them.
@@ -90,6 +126,24 @@ class CPU {
     // outlined in the LS-8 spec.
 
     switch (IR) {
+      case ADD:
+        this.alu("ADD", operandA, operandB);
+        break;
+      case SUB:
+        this.alu("SUB", operandA, operandB);
+        break;
+      case DIV:
+        this.alu("DIV", operandA, operandB);
+        break;
+      case AND:
+        this.alu("AND", operandA, operandB);
+        break;
+      case PRN:
+        console.log(this.reg[operandA]);
+        break;
+      case PRA:
+        console.log(String.fromCharCode(this.reg[operandA]));
+        break;
       case LDI:
         this.reg[operandA] = operandB;
         this.PC += 3;
@@ -99,17 +153,25 @@ class CPU {
         break;
 
       case HLT:
-          this.stopClock();
-          break;
+        this.stopClock();
+        break;
 
-    
-      case MUL: 
-        this.reg[operandA] = this.reg[operandA] * this.reg[operandB];
+      case LD:
+        this.reg[operandA] = this.reg[operandB];
+        break;
+      case INC:
+        this.reg[operandA]++;
+        break;
+      case DEC:
+        this.reg[operandA]--;
+        break;
+      case JMP:
+        this.PC = this.reg[operandA];
         break;
 
       default:
-          console.log(`Unknown instruction at ${this.PC}: ${IR.toString(2)}`)
-          this.stopClock();
+        console.log(`Unknown instruction at ${this.PC}: ${IR.toString(2)}`);
+        this.stopClock();
     }
 
     // !!! IMPLEMENT ME
