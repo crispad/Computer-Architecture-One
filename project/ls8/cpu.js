@@ -26,6 +26,7 @@ const CALL = 0b01001000;
 const RET = 0b00001001;
 
 
+
 /**
  * Class for simulating a simple Computer (CPU & memory)
  */
@@ -40,6 +41,8 @@ class CPU {
 
     // Special-purpose registers
     this.PC = 0; // Program Counter
+
+    this.flag = false;
   }
 
   /**
@@ -92,7 +95,7 @@ class CPU {
 
       case "DIV":
         if (regB === 0) {
-          console.error("Denominator cannot be zero");
+          //console.error("Denominator cannot be zero");
           this.stopClock();
         } else {
           this.reg[regA] /= this.reg[regB];
@@ -103,7 +106,7 @@ class CPU {
         this.reg[regA] &= this.reg[regB];
         break;
       default:
-        console.log("Default case");
+        //console.log("Default case");
         break;
     }
   }
@@ -122,7 +125,7 @@ class CPU {
     // !!! IMPLEMENT ME
 
     // Debugging output
-    console.log(`${this.PC}: ${IR.toString(2)}`);
+    //console.log(`${this.PC}: ${IR.toString(2)}`);
 
     // Get the two bytes in memory _after_ the PC in case the instruction
     // needs them.
@@ -154,10 +157,12 @@ class CPU {
         this.reg[7]++;
         break;
       case CALL:
+        this.flag = true;
         _push(this.reg.PC + 2);
         this.reg.PC = this.reg[operandA];
         break;
       case RET: 
+        this.flag = true;
         this.reg.PC = this.ram.read(this.reg[7]);
         this.reg[7]++;
         break;
@@ -214,7 +219,12 @@ class CPU {
     // for any particular instruction.
 
     // !!! IMPLEMENT ME
+    if (!this.flag) {
+        this.reg.PC++;
     this.PC += (IR >> 6) + 1;
+    }
+    this.flag = false;
+    //console.log(this.flag.toString(2));
   }
 }
 
