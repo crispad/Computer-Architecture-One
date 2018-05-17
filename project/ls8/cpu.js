@@ -127,8 +127,8 @@ class CPU {
     // Get the two bytes in memory _after_ the PC in case the instruction
     // needs them.
 
-    const operandA = this.ram.read(this.reg.PC + 1);
-    const operandB = this.ram.read(this.reg.PC + 2);
+    const operandA = this.ram.read(this.PC + 1);
+    const operandB = this.ram.read(this.PC + 2);
 
     // !!! IMPLEMENT ME
 
@@ -137,7 +137,7 @@ class CPU {
 
 
     const _push = value => {
-        this.reg[8]--;
+        this.reg[7]--;
         this.ram.write(this.reg[7], value);
     };
     
@@ -150,7 +150,7 @@ class CPU {
         _push(this.reg[operandA]);
         break;
       case POP: 
-        this.reg[operandA] = IR(this.reg[7]);
+        this.reg[operandA] = this.ram.read(this.reg[7]);
         this.reg[7]++;
         break;
       case CALL:
@@ -178,7 +178,7 @@ class CPU {
         break;
       case LDI:
         this.reg[operandA] = operandB;
-        this.PC += 3;
+       console.log(this.reg);
         break;
       case PRN:
         console.log(this.reg[operandA]);
@@ -214,7 +214,7 @@ class CPU {
     // for any particular instruction.
 
     // !!! IMPLEMENT ME
-    this.reg.PC += (IR >> 6) + 1;
+    this.PC += (IR >> 6) + 1;
   }
 }
 
