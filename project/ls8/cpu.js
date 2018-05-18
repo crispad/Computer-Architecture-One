@@ -7,7 +7,6 @@ const HLT = 0b00000001;
 
 const MUL = 0b10101010;
 const ADD = 0b10101000;
-const CMP = 0b10100000;
 const SUB = 0b10101001;
 const DIV = 0b10101011;
 
@@ -25,7 +24,15 @@ const POP = 0b01001100;
 const CALL = 0b01001000;
 const RET = 0b00001001;
 
+const ST = 0b10011010;
 
+const CMP = 0b10100000;
+const JEQ = 0b01010001;
+const JNE = 0b01010010;
+
+const FL_L = 0x1 << 2;
+const FL_G = 0x1 << 1;
+const FL_E = 0x1 << 0;
 
 /**
  * Class for simulating a simple Computer (CPU & memory)
@@ -42,7 +49,8 @@ class CPU {
     // Special-purpose registers
     this.PC = 0; // Program Counter
 
-    this.flag = false;
+    this.PCflag = false;
+    this.reg.FL = 0b00000000;
   }
 
   /**
@@ -138,31 +146,30 @@ class CPU {
     // Execute the instruction. Perform the actions for the instruction as
     // outlined in the LS-8 spec.
 
-
     const _push = value => {
-        this.reg[7]--;
-        this.ram.write(this.reg[7], value);
+      this.reg[7]--;
+      this.ram.write(this.reg[7], value);
     };
-    
+
     switch (IR) {
       case ADD:
         this.alu("ADD", operandA, operandB);
         break;
-      case PUSH: 
+      case PUSH:
         if (this.reg[7] === 0) this.reg[7] = 0xf4;
         _push(this.reg[operandA]);
         break;
-      case POP: 
+      case POP:
         this.reg[operandA] = this.ram.read(this.reg[7]);
         this.reg[7]++;
         break;
       case CALL:
-        this.flag = true;
+        this.PCflag = true;
         _push(this.reg.PC + 2);
         this.reg.PC = this.reg[operandA];
         break;
-      case RET: 
-        this.flag = true;
+      case RET:
+        this.PCflag = true;
         this.reg.PC = this.ram.read(this.reg[7]);
         this.reg[7]++;
         break;
@@ -183,14 +190,10 @@ class CPU {
         break;
       case LDI:
         this.reg[operandA] = operandB;
-       console.log(this.reg);
+        console.log(this.reg);
         break;
       case PRN:
         console.log(this.reg[operandA]);
-        break;
-
-      case HLT:
-        this.stopClock();
         break;
 
       case LD:
@@ -203,12 +206,38 @@ class CPU {
         this.reg[operandA]--;
         break;
       case JMP:
-        this.PC = this.reg[operandA];
+        this.PCflag = true;
+        this.reg.PC = this.reg[operandA];
+        break;
+      case CMP:
+        if (this.reg[operandA] === this.reg[operandB]) this.reg.FL |= FL_E;
+        else this.reg.FL &= ~FL_E;
+        if (this.reg[operandA] < this.reg[operandB]) this.reg.FL |= FL_L;
+        else this.reg.FL &= ~FL_G;
+        break;
+      case JEQ:
+        if ((this.reg.FL &= 0b00000001) === 0b1) {
+          this.PCflag = true;
+          this.reg.PC = this.reg[operandA];
+        }
+        break;
+      case JNE:
+        if ((this.reg.FL &= 0b00000001) === 0b0) {
+          this.PCflag = true;
+          this.reg.PC = this.reg[operandA];
+        }
+        break;
+      case ST:
+        this.ram.write(this.reg[operandA], this.reg[operandB]);
         break;
 
-      default:
-        console.log(`Unknown instruction at ${this.PC}: ${IR.toString(2)}`);
+      case HLT:
         this.stopClock();
+        break;
+
+      //   default:
+      //     console.log(`Unknown instruction at ${this.PC}: ${IR.toString(2)}`);
+      //     this.stopClock();
     }
 
     // !!! IMPLEMENT ME
@@ -219,11 +248,11 @@ class CPU {
     // for any particular instruction.
 
     // !!! IMPLEMENT ME
-    if (!this.flag) {
-        this.reg.PC++;
-    this.PC += (IR >> 6) + 1;
+    if (!this.PCflag) {
+      this.reg.PC++;
+      this.PC += (IR >> 6) + 1;
     }
-    this.flag = false;
+    this.PCflag = false;
     //console.log(this.flag.toString(2));
   }
 }
